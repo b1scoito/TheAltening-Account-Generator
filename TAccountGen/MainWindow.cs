@@ -10,28 +10,36 @@ using System.Net;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Diagnostics;
+using System.Threading;
 
 namespace TAccountGen
 {
     public partial class MainWindow : Form
     {
+        #region "Events"
         public MainWindow()
         {
             InitializeComponent();
+            // idk thats gay for me.
+            CheckForIllegalCrossThreadCalls = false;
+            // materialgaymanager
             var materialSkinManager = MaterialSkinManager.Instance;
             materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
             materialSkinManager.ColorScheme = new ColorScheme(Primary.Green600, Primary.Green600, Primary.Green600, Accent.Green700, TextShade.WHITE);
+            // hide the notification panel whoa how COOL!
             notif.Location = new Point(notif.Location.X - 238, notif.Location.Y);
         }
 
         private void MainWindow_Load(object sender, EventArgs e)
         {
+            // Yeah that's json.
             var version = JsonConvert.DeserializeObject<VersionAPI>(Get(versionapi));
             lbVersion.Text = string.Format("{0}" + version.protocol_text, "v");
             if (File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")))
             {
-                Match match = rgx.Match(File.ReadAllText(Base64Decode(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token"))));
-                if (match.Success) { txtApiKey.Text = File.ReadAllText(Base64Decode(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token"))); }
+                    Match match = rgx.Match(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")));
+                    if (match.Success) { txtApiKey.Text = File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")); }
             }
         }
         private void txtApiKey_TextChanged(object sender, EventArgs e)
@@ -40,9 +48,10 @@ namespace TAccountGen
             if (match.Success)
             {
                 Notification("Loading Information..", 1500);
-                File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token"), Base64Encode(match.Value));
+                File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token"), match.Value);
                 switch (Get(string.Format(licenseapi + "{0}", match.Value)))
                 {
+                    // Huh?
                     case "Unauthorized":
                         Notification("API Error: Unauthorized (API Key Invalid)", 4000);
                         return;
@@ -59,49 +68,62 @@ namespace TAccountGen
                 var license = JsonConvert.DeserializeObject<LicenseAPI>(Get(string.Format(licenseapi + "{0}", match.Value)));
                 if (license.premium == false)
                 {
+                    // I don't think that this error will ever show up.
                     Notification("Account is not premium!", 4000);
                     return;
                 }
                 pnInfo.Visible = true;
                 plan = license.premium_name;
-                lbAccInfo.Text = string.Format("User: {0}\nPlan: {1}\nExpires in: {2}", license.username, license.premium_name, license.expires);
+                // Info from the license API.
+                lbAccInfo.Text = string.Format("User: {0}\nPlan: {1}\nExpires in: {2}", license.username, license.premium_name.ToUpper(), license.expires);
             }
             else
             {
                 pnInfo.Visible = false;
             }
         }
-
-
-        private void btnGen_Click(object sender, EventArgs e)
+        [STAThread]
+        public void test()
         {
             Match match = rgx.Match(txtApiKey.Text);
-            
+
             switch (Get(string.Format(genapi + "{0}", match.Value)))
             {
                 case "Unauthorized":
+                    // Either the API Token was not provided or is invalid. To learn how to get and include your API Token in the request please refer to the Authorization section.
                     Notification("API Error: Unauthorized (API Key Invalid)", 4000);
                     return;
                 case "Forbidden":
+                    // The api token provided is not able to access the requested endpoint. E.g: free customer attempts to access /generate.
                     Notification("API Error: Forbidden", 4000);
                     return;
                 case "NotFound":
+                    // The requested endpoint does not exist. If you get this error make sure you didn't misspell the endpoint.
                     Notification("API Error: Not Found", 4000);
                     return;
                 case "InternalServerError":
+                    // Our servers encountered and unexpected error, try again later.
                     Notification("API Error: Internal Server Error", 4000);
                     return;
             }
 
             var geninfo = JsonConvert.DeserializeObject<GenerateAPI>(Get(string.Format(genapi + "{0}", match.Value)));
+            if (geninfo.limit == true)
+            {
+                Notification("API Is Limited!", 2000);
+                return;
+            }
+            // Checks for premium plan. If it's premium it'll show a cape whether or not exists
             if (plan == "premium")
             {
                 lbGenInfo.Location = new Point(lbGenInfo.Location.X, lbGenInfo.Location.Y - 6);
                 lbGenInfo.Text = string.Format("User: {0}\nToken: {1}\nPassword: anything\nCape:{2}", geninfo.username, geninfo.token, geninfo.cape);
                 Notification(string.Format("Alt: {0} Generated!", geninfo.username), 3000);
+                // Loads skin if it exists.
                 picHead.Load(string.Format("https://crafatar.com/avatars/{0}?size=64?overlay=true", geninfo.skin));
                 if (chkAutoCopy.Checked)
                 {
+                    // Sets token:pass to the clipboard.
                     Clipboard.SetText(string.Format("{0}:{1}", geninfo.token, "anything"));
                 }
                 return;
@@ -109,16 +131,35 @@ namespace TAccountGen
             lbGenInfo.Location = new Point(lbGenInfo.Location.X, 48);
             Notification(string.Format("Alt: {0} Generated!", geninfo.username), 3000);
             lbGenInfo.Text = string.Format("User:{0}\nToken:{1}\nPassword: anything", geninfo.username, geninfo.token);
+            // That's slowwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww w  w         w               w                                   w                             w uh?? hello? w                                                w
             picHead.Load(string.Format("https://crafatar.com/avatars/{0}?size=64?overlay=true", geninfo.skin));
             if (chkAutoCopy.Checked)
             {
-                Clipboard.SetText(string.Format("{0}:{1}", geninfo.token, "anything"));
+                Invoke((Action)(() => { Clipboard.SetText(string.Format("{0}:{1}", geninfo.token, "anything")); }));
             }
+        }
+        private void btnGen_Click(object sender, EventArgs e)
+        {
+            new Thread(new ThreadStart(test)) { IsBackground = true }.Start();
+           
         }
         private void btnClose_Click(object sender, EventArgs e)
         {
+            // Bye!
             Environment.Exit(0);
         }
+        private void picGithub_Click(object sender, EventArgs e)
+        {
+            // Annoying
+            Process.Start("https://github.com/b1scoito/TheAltening-Account-Generator");
+        }
+        private void picStatus_Click(object sender, EventArgs e)
+        {
+            // Yeah?
+            var getstatus = JsonConvert.DeserializeObject<StatusROOT>(Get(statusapi));
+            MessageBox.Show(string.Format("Authentication Servers: {0}\nSession Server: {1}\nWebsite: {2}\nChecker: {3}", getstatus.status.authentication, getstatus.status.sessions, getstatus.status.website, getstatus.status.checker), "TheAltening Account Generator", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        #endregion
         // Utils (Too lazy to create an class)
         #region "Shadow"
         public const int WM_NCLBUTTONDOWN = 0xA1;
@@ -194,10 +235,12 @@ namespace TAccountGen
         #endregion
         #region "Strings n Shit"
         public static string versionapi = "http://api.thealtening.com/app/version";
+        public static string statusapi = "http://api.thealtening.com/status";
         public static string licenseapi = "http://api.thealtening.com/v1/license?token=";
         public static string genapi = "http://api.thealtening.com/v1/generate?token=";
         public static string plan;
         static Regex rgx = new Regex(@"^(api)-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})$");
+        static Regex b64 = new Regex(@"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$");
         public static string extstatuscode;
         #endregion
         #region "Utils"
@@ -249,16 +292,6 @@ namespace TAccountGen
             await Wait(delay);
             Transition.run(notif, "Left", -238, new TransitionType_Acceleration(350));
         }
-        public static string Base64Encode(string plainText)
-        {
-            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-            return Convert.ToBase64String(plainTextBytes);
-        }
-        public static string Base64Decode(string base64EncodedData)
-        {
-            var base64EncodedBytes = Convert.FromBase64String(base64EncodedData);
-            return Encoding.UTF8.GetString(base64EncodedBytes);
-        }
         #endregion
         #region "JsonClasses"
         public class VersionAPI
@@ -269,7 +302,6 @@ namespace TAccountGen
             public string url_download { get; set; }
             public string url_showcase { get; set; }
         }
-
         public class LicenseAPI
         {
             public string username { get; set; }
@@ -287,6 +319,24 @@ namespace TAccountGen
             public string cape { get; set; }
             public string password { get; set; }
         }
+        public class Endpoints
+        {
+            public string server_authentication { get; set; }
+            public string server_session { get; set; }
+        }
+        public class StatusAPI
+        {
+            public string authentication { get; set; }
+            public string sessions { get; set; }
+            public string website { get; set; }
+            public string checker { get; set; }
+        }
+        public class StatusROOT
+        {
+            public Endpoints endpoints { get; set; }
+            public StatusAPI status { get; set; }
+        }
         #endregion
+
     }
 }
