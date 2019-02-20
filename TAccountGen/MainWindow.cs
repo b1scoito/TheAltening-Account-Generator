@@ -20,8 +20,6 @@ namespace TAccountGen
         public MainWindow()
         {
             InitializeComponent();
-            // idk thats gay for me.
-            CheckForIllegalCrossThreadCalls = false;
             // materialgaymanager
             var materialSkinManager = MaterialSkinManager.Instance;
             materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
@@ -29,7 +27,6 @@ namespace TAccountGen
             // hide the notification panel whoa how COOL!
             notif.Location = new Point(notif.Location.X - 238, notif.Location.Y);
         }
-
         private void MainWindow_Load(object sender, EventArgs e)
         {
             // Yeah that's json.
@@ -37,8 +34,8 @@ namespace TAccountGen
             lbVersion.Text = string.Format("{0}" + version.protocol_text, "v");
             if (File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")))
             {
-                    Match match = rgx.Match(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")));
-                    if (match.Success) { txtApiKey.Text = File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")); }
+                Match match = rgx.Match(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")));
+                if (match.Success) { txtApiKey.Text = File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")); }
             }
         }
         private void txtApiKey_TextChanged(object sender, EventArgs e)
@@ -81,66 +78,66 @@ namespace TAccountGen
                 pnInfo.Visible = false;
             }
         }
-        [STAThread]
         public void genaltthread()
         {
-            Match match = rgx.Match(txtApiKey.Text);
-
-            switch (Get(string.Format(genapi + "{0}", match.Value)))
+            Invoke((Action)(() =>
             {
-                case "Unauthorized":
-                    // Either the API Token was not provided or is invalid. To learn how to get and include your API Token in the request please refer to the Authorization section.
-                    Notification("API Error: Unauthorized (API Key Invalid)", 4000);
+                Match match = rgx.Match(txtApiKey.Text);
+                switch (Get(string.Format(genapi + "{0}", match.Value)))
+                {
+                    case "Unauthorized":
+                        // Either the API Token was not provided or is invalid. To learn how to get and include your API Token in the request please refer to the Authorization section.
+                        Notification("API Error: Unauthorized (API Key Invalid)", 4000);
+                        return;
+                    case "Forbidden":
+                        // The api token provided is not able to access the requested endpoint. E.g: free customer attempts to access /generate.
+                        Notification("API Error: Forbidden", 4000);
+                        return;
+                    case "NotFound":
+                        // The requested endpoint does not exist. If you get this error make sure you didn't misspell the endpoint.
+                        Notification("API Error: Not Found", 4000);
+                        return;
+                    case "InternalServerError":
+                        // Our servers encountered and unexpected error, try again later.
+                        Notification("API Error: Internal Server Error", 4000);
+                        return;
+                }
+                var geninfo = JsonConvert.DeserializeObject<GenerateAPI>(Get(string.Format(genapi + "{0}", match.Value)));
+                if (geninfo.limit == true)
+                {
+                    Notification("API Is Limited!", 2000);
                     return;
-                case "Forbidden":
-                    // The api token provided is not able to access the requested endpoint. E.g: free customer attempts to access /generate.
-                    Notification("API Error: Forbidden", 4000);
+                }
+                // Checks for premium plan. If it's premium it'll show a cape whether or not exists
+                if (plan == "premium")
+                {
+                    lbGenInfo.Location = new Point(lbGenInfo.Location.X, lbGenInfo.Location.Y - 6);
+                    lbGenInfo.Text = string.Format("User: {0}\nToken: {1}\nPassword: anything\nCape:{2}", geninfo.username, geninfo.token, geninfo.cape);
+                    Notification(string.Format("Alt: {0} Generated!", geninfo.username), 3000);
+                    // Loads skin if it exists.
+                    picHead.Load(string.Format("https://crafatar.com/avatars/{0}?size=64?overlay=true", geninfo.skin));
+                    if (chkAutoCopy.Checked)
+                    {
+                        // Sets token:pass to the clipboard.
+                        Clipboard.SetText(string.Format("{0}:{1}", geninfo.token, "anything"));
+                    }
                     return;
-                case "NotFound":
-                    // The requested endpoint does not exist. If you get this error make sure you didn't misspell the endpoint.
-                    Notification("API Error: Not Found", 4000);
-                    return;
-                case "InternalServerError":
-                    // Our servers encountered and unexpected error, try again later.
-                    Notification("API Error: Internal Server Error", 4000);
-                    return;
-            }
-
-            var geninfo = JsonConvert.DeserializeObject<GenerateAPI>(Get(string.Format(genapi + "{0}", match.Value)));
-            if (geninfo.limit == true)
-            {
-                Notification("API Is Limited!", 2000);
-                return;
-            }
-            // Checks for premium plan. If it's premium it'll show a cape whether or not exists
-            if (plan == "premium")
-            {
-                lbGenInfo.Location = new Point(lbGenInfo.Location.X, lbGenInfo.Location.Y - 6);
-                lbGenInfo.Text = string.Format("User: {0}\nToken: {1}\nPassword: anything\nCape:{2}", geninfo.username, geninfo.token, geninfo.cape);
+                }
+                lbGenInfo.Location = new Point(lbGenInfo.Location.X, 48);
                 Notification(string.Format("Alt: {0} Generated!", geninfo.username), 3000);
-                // Loads skin if it exists.
+                lbGenInfo.Text = string.Format("User:{0}\nToken:{1}\nPassword: anything", geninfo.username, geninfo.token);
+                // That's slowwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww w  w         w               w                                   w                             w uh?? hello? w                                                w
                 picHead.Load(string.Format("https://crafatar.com/avatars/{0}?size=64?overlay=true", geninfo.skin));
                 if (chkAutoCopy.Checked)
                 {
-                    // Sets token:pass to the clipboard.
                     Clipboard.SetText(string.Format("{0}:{1}", geninfo.token, "anything"));
                 }
-                return;
-            }
-            lbGenInfo.Location = new Point(lbGenInfo.Location.X, 48);
-            Notification(string.Format("Alt: {0} Generated!", geninfo.username), 3000);
-            lbGenInfo.Text = string.Format("User:{0}\nToken:{1}\nPassword: anything", geninfo.username, geninfo.token);
-            // That's slowwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww w  w         w               w                                   w                             w uh?? hello? w                                                w
-            picHead.Load(string.Format("https://crafatar.com/avatars/{0}?size=64?overlay=true", geninfo.skin));
-            if (chkAutoCopy.Checked)
-            {
-                Invoke((Action)(() => { Clipboard.SetText(string.Format("{0}:{1}", geninfo.token, "anything")); }));
-            }
+            }));
         }
         private void btnGen_Click(object sender, EventArgs e)
         {
             new Thread(new ThreadStart(genaltthread)) { IsBackground = true }.Start();
-           
+
         }
         private void btnClose_Click(object sender, EventArgs e)
         {
