@@ -129,7 +129,7 @@
             // pnCor1
             // 
             this.pnCor1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(67)))), ((int)(((byte)(160)))), ((int)(((byte)(71)))));
-            this.pnCor1.Location = new System.Drawing.Point(17, 17);
+            this.pnCor1.Location = new System.Drawing.Point(17, 40);
             this.pnCor1.Name = "pnCor1";
             this.pnCor1.Size = new System.Drawing.Size(5, 72);
             this.pnCor1.TabIndex = 0;
@@ -140,7 +140,7 @@
             this.lbTitleInfo.Depth = 0;
             this.lbTitleInfo.Font = new System.Drawing.Font("Roboto", 11F);
             this.lbTitleInfo.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.lbTitleInfo.Location = new System.Drawing.Point(26, 17);
+            this.lbTitleInfo.Location = new System.Drawing.Point(26, 40);
             this.lbTitleInfo.MouseState = MaterialSkin.MouseState.HOVER;
             this.lbTitleInfo.Name = "lbTitleInfo";
             this.lbTitleInfo.Size = new System.Drawing.Size(94, 18);
@@ -152,7 +152,7 @@
             this.lbAccInfo.AutoSize = true;
             this.lbAccInfo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lbAccInfo.ForeColor = System.Drawing.Color.White;
-            this.lbAccInfo.Location = new System.Drawing.Point(26, 40);
+            this.lbAccInfo.Location = new System.Drawing.Point(26, 63);
             this.lbAccInfo.Name = "lbAccInfo";
             this.lbAccInfo.Size = new System.Drawing.Size(56, 45);
             this.lbAccInfo.TabIndex = 3;
@@ -183,7 +183,7 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(67)))), ((int)(((byte)(160)))), ((int)(((byte)(71)))));
-            this.panel1.Location = new System.Drawing.Point(148, 17);
+            this.panel1.Location = new System.Drawing.Point(174, 17);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(5, 130);
             this.panel1.TabIndex = 0;
@@ -194,7 +194,7 @@
             this.lbTitleGenerate.Depth = 0;
             this.lbTitleGenerate.Font = new System.Drawing.Font("Roboto", 11F);
             this.lbTitleGenerate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.lbTitleGenerate.Location = new System.Drawing.Point(159, 17);
+            this.lbTitleGenerate.Location = new System.Drawing.Point(185, 17);
             this.lbTitleGenerate.MouseState = MaterialSkin.MouseState.HOVER;
             this.lbTitleGenerate.Name = "lbTitleGenerate";
             this.lbTitleGenerate.Size = new System.Drawing.Size(136, 19);

@@ -89,12 +89,22 @@ namespace TAccountGen
         public static string versionapi = "http://api.thealtening.com/app/version";
         public static string licenseapi = "http://api.thealtening.com/v1/license?token=";
         static Regex rgx = new Regex(@"^(api)-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})$");
-        public string Get(string uri)
+        public static string Get(string uri)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            switch ((int)response.StatusCode)
+            {
+                case (int)TheAlteningAPIStatus.Unauthorized:
+                    return "Unauthorized";
+                case (int)TheAlteningAPIStatus.Forbidden:
+                    return "Forbidden";
+                case (int)TheAlteningAPIStatus.NotFound:
+                    return "Not Found";
+                case (int)TheAlteningAPIStatus.InternalServerError:
+                    return "Internal Server Error";
+            }
             using (Stream stream = response.GetResponseStream())
             using (StreamReader reader = new StreamReader(stream))
             {
@@ -138,11 +148,25 @@ namespace TAccountGen
             {
                 Notification("Loading Information..", 1500);
                 File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token"), match.Value);
+                    switch(Get(string.Format(licenseapi + "{0}", match.Value)))
+                    {
+                    case "Unauthorized":
+
+                        break;
+                    case "Forbidden":
+                        break;
+                    case "NotFound":
+                        break;
+                    case "InternalServerError":
+                        break;
+                    }
                 var license = JsonConvert.DeserializeObject<LicenseAPI>(Get(string.Format(licenseapi + "{0}", match.Value)));
-                if (license.premium == false) {
+                if (license.premium == false)
+                {
                     Notification("Account is expired!", 3000);
                     return;
-                } pnInfo.Visible = true;
+                }
+                pnInfo.Visible = true;
                 lbAccInfo.Text = string.Format("User: {0}\nPlan: {1}\nExpires in: {2}", license.username, license.premium_name, license.expires);
             }
             else
@@ -167,7 +191,13 @@ namespace TAccountGen
             public string premium_name { get; set; }
             public string expires { get; set; }
         }
-
+        public enum TheAlteningAPIStatus
+        {
+            Unauthorized = 401,
+            Forbidden = 403,
+            NotFound = 404,
+            InternalServerError = 500
+        }
         private void btnClose_Click(object sender, EventArgs e)
         {
             Environment.Exit(0);
