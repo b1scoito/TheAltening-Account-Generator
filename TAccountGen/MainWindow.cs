@@ -89,26 +89,42 @@ namespace TAccountGen
         public static string versionapi = "http://api.thealtening.com/app/version";
         public static string licenseapi = "http://api.thealtening.com/v1/license?token=";
         static Regex rgx = new Regex(@"^(api)-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})$");
+        public static string penis;
         public static string Get(string uri)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            switch ((int)response.StatusCode)
+            try
             {
-                case (int)TheAlteningAPIStatus.Unauthorized:
-                    return "Unauthorized";
-                case (int)TheAlteningAPIStatus.Forbidden:
-                    return "Forbidden";
-                case (int)TheAlteningAPIStatus.NotFound:
-                    return "Not Found";
-                case (int)TheAlteningAPIStatus.InternalServerError:
-                    return "Internal Server Error";
+
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                using (Stream stream = response.GetResponseStream())
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
             }
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
+            catch (WebException ex)
             {
-                return reader.ReadToEnd();
+
+                HttpWebResponse errorResponse = ex.Response as HttpWebResponse;
+                switch (errorResponse.StatusCode)
+                {
+                    case HttpStatusCode.Unauthorized:
+                        penis = "Unauthorized";
+                        return "Unauthorized";
+                    case HttpStatusCode.Forbidden:
+                        penis = "Forbidden";
+                        return "Forbidden";
+                    case HttpStatusCode.NotFound:
+                        penis = "Not Found";
+                        return "Not Found";
+                    case HttpStatusCode.InternalServerError:
+                        penis = "Internal Server Error";
+                        return "Internal Server Error";
+                }
+                return penis;
+
             }
         }
         public MainWindow()
@@ -148,22 +164,25 @@ namespace TAccountGen
             {
                 Notification("Loading Information..", 1500);
                 File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token"), match.Value);
-                    switch(Get(string.Format(licenseapi + "{0}", match.Value)))
-                    {
+                switch (Get(string.Format(licenseapi + "{0}", match.Value)))
+                {
                     case "Unauthorized":
-
-                        break;
+                        Notification("API Error: Unauthorized", 4000);
+                        return;
                     case "Forbidden":
-                        break;
+                        Notification("API Error: Forbidden", 4000);
+                        return;
                     case "NotFound":
-                        break;
+                        Notification("API Error: Not Found", 4000);
+                        return;
                     case "InternalServerError":
-                        break;
-                    }
+                        Notification("API Error: Internal Server Error", 4000);
+                        return;
+                }
                 var license = JsonConvert.DeserializeObject<LicenseAPI>(Get(string.Format(licenseapi + "{0}", match.Value)));
                 if (license.premium == false)
                 {
-                    Notification("Account is expired!", 3000);
+                    Notification("Account is expired!", 4000);
                     return;
                 }
                 pnInfo.Visible = true;
