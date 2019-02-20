@@ -40,21 +40,26 @@
             this.lbAccInfo = new System.Windows.Forms.Label();
             this.btnClose = new System.Windows.Forms.PictureBox();
             this.picTA = new System.Windows.Forms.PictureBox();
-            this.panel1 = new System.Windows.Forms.Panel();
+            this.pnCor2 = new System.Windows.Forms.Panel();
             this.lbTitleGenerate = new MaterialSkin.Controls.MaterialLabel();
+            this.btnGen = new MaterialSkin.Controls.MaterialFlatButton();
+            this.chkAutoCopy = new MaterialSkin.Controls.MaterialCheckBox();
+            this.picHead = new System.Windows.Forms.PictureBox();
+            this.lbGenInfo = new System.Windows.Forms.Label();
             this.notif.SuspendLayout();
             this.pnInfo.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.btnClose)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picTA)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picHead)).BeginInit();
             this.SuspendLayout();
             // 
             // notif
             // 
             this.notif.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(15)))));
             this.notif.Controls.Add(this.lbAlt);
-            this.notif.Location = new System.Drawing.Point(0, 300);
+            this.notif.Location = new System.Drawing.Point(0, 304);
             this.notif.Name = "notif";
-            this.notif.Size = new System.Drawing.Size(231, 40);
+            this.notif.Size = new System.Drawing.Size(230, 40);
             this.notif.TabIndex = 0;
             // 
             // lbAlt
@@ -115,12 +120,16 @@
             // pnInfo
             // 
             this.pnInfo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(18)))), ((int)(((byte)(18)))), ((int)(((byte)(18)))));
+            this.pnInfo.Controls.Add(this.picHead);
+            this.pnInfo.Controls.Add(this.chkAutoCopy);
+            this.pnInfo.Controls.Add(this.btnGen);
             this.pnInfo.Controls.Add(this.lbTitleGenerate);
             this.pnInfo.Controls.Add(this.lbTitleInfo);
-            this.pnInfo.Controls.Add(this.panel1);
+            this.pnInfo.Controls.Add(this.pnCor2);
             this.pnInfo.Controls.Add(this.pnCor1);
+            this.pnInfo.Controls.Add(this.lbGenInfo);
             this.pnInfo.Controls.Add(this.lbAccInfo);
-            this.pnInfo.Location = new System.Drawing.Point(14, 126);
+            this.pnInfo.Location = new System.Drawing.Point(13, 118);
             this.pnInfo.Name = "pnInfo";
             this.pnInfo.Size = new System.Drawing.Size(473, 163);
             this.pnInfo.TabIndex = 5;
@@ -180,13 +189,13 @@
             this.picTA.TabIndex = 1;
             this.picTA.TabStop = false;
             // 
-            // panel1
+            // pnCor2
             // 
-            this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(67)))), ((int)(((byte)(160)))), ((int)(((byte)(71)))));
-            this.panel1.Location = new System.Drawing.Point(174, 17);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(5, 130);
-            this.panel1.TabIndex = 0;
+            this.pnCor2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(67)))), ((int)(((byte)(160)))), ((int)(((byte)(71)))));
+            this.pnCor2.Location = new System.Drawing.Point(174, 17);
+            this.pnCor2.Name = "pnCor2";
+            this.pnCor2.Size = new System.Drawing.Size(5, 130);
+            this.pnCor2.TabIndex = 0;
             // 
             // lbTitleGenerate
             // 
@@ -200,6 +209,59 @@
             this.lbTitleGenerate.Size = new System.Drawing.Size(136, 19);
             this.lbTitleGenerate.TabIndex = 1;
             this.lbTitleGenerate.Text = "Generate Accounts";
+            // 
+            // btnGen
+            // 
+            this.btnGen.AutoSize = true;
+            this.btnGen.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnGen.Depth = 0;
+            this.btnGen.Icon = null;
+            this.btnGen.Location = new System.Drawing.Point(186, 111);
+            this.btnGen.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnGen.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnGen.Name = "btnGen";
+            this.btnGen.Primary = false;
+            this.btnGen.Size = new System.Drawing.Size(121, 36);
+            this.btnGen.TabIndex = 4;
+            this.btnGen.Text = "Generate Alt!";
+            this.btnGen.UseVisualStyleBackColor = true;
+            this.btnGen.Click += new System.EventHandler(this.btnGen_Click);
+            // 
+            // chkAutoCopy
+            // 
+            this.chkAutoCopy.AutoSize = true;
+            this.chkAutoCopy.Depth = 0;
+            this.chkAutoCopy.Font = new System.Drawing.Font("Roboto", 10F);
+            this.chkAutoCopy.Location = new System.Drawing.Point(311, 115);
+            this.chkAutoCopy.Margin = new System.Windows.Forms.Padding(0);
+            this.chkAutoCopy.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.chkAutoCopy.MouseState = MaterialSkin.MouseState.HOVER;
+            this.chkAutoCopy.Name = "chkAutoCopy";
+            this.chkAutoCopy.Ripple = true;
+            this.chkAutoCopy.Size = new System.Drawing.Size(90, 30);
+            this.chkAutoCopy.TabIndex = 5;
+            this.chkAutoCopy.Text = "AutoCopy";
+            this.chkAutoCopy.UseVisualStyleBackColor = true;
+            // 
+            // picHead
+            // 
+            this.picHead.Location = new System.Drawing.Point(188, 40);
+            this.picHead.Name = "picHead";
+            this.picHead.Size = new System.Drawing.Size(64, 64);
+            this.picHead.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.picHead.TabIndex = 6;
+            this.picHead.TabStop = false;
+            // 
+            // lbGenInfo
+            // 
+            this.lbGenInfo.AutoSize = true;
+            this.lbGenInfo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbGenInfo.ForeColor = System.Drawing.Color.White;
+            this.lbGenInfo.Location = new System.Drawing.Point(265, 48);
+            this.lbGenInfo.Name = "lbGenInfo";
+            this.lbGenInfo.Size = new System.Drawing.Size(110, 45);
+            this.lbGenInfo.TabIndex = 3;
+            this.lbGenInfo.Text = "User:\r\nToken:\r\nPassword: anything";
             // 
             // MainWindow
             // 
@@ -229,6 +291,7 @@
             this.pnInfo.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.btnClose)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picTA)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picHead)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -248,7 +311,11 @@
         private System.Windows.Forms.Label lbAccInfo;
         private System.Windows.Forms.PictureBox btnClose;
         private MaterialSkin.Controls.MaterialLabel lbTitleGenerate;
-        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Panel pnCor2;
+        private System.Windows.Forms.PictureBox picHead;
+        private MaterialSkin.Controls.MaterialCheckBox chkAutoCopy;
+        private MaterialSkin.Controls.MaterialFlatButton btnGen;
+        private System.Windows.Forms.Label lbGenInfo;
     }
 }
 

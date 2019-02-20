@@ -9,12 +9,118 @@ using Transitions;
 using System.Net;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace TAccountGen
 {
     public partial class MainWindow : Form
     {
-        #region "Sombra"
+        public MainWindow()
+        {
+            InitializeComponent();
+            var materialSkinManager = MaterialSkinManager.Instance;
+            materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
+            materialSkinManager.ColorScheme = new ColorScheme(Primary.Green600, Primary.Green600, Primary.Green600, Accent.Green700, TextShade.WHITE);
+            notif.Location = new Point(notif.Location.X - 238, notif.Location.Y);
+        }
+
+        private void MainWindow_Load(object sender, EventArgs e)
+        {
+            var version = JsonConvert.DeserializeObject<VersionAPI>(Get(versionapi));
+            lbVersion.Text = string.Format("{0}" + version.protocol_text, "v");
+            if (File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")))
+            {
+                Match match = rgx.Match(File.ReadAllText(Base64Decode(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token"))));
+                if (match.Success) { txtApiKey.Text = File.ReadAllText(Base64Decode(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token"))); }
+            }
+        }
+        private void txtApiKey_TextChanged(object sender, EventArgs e)
+        {
+            Match match = rgx.Match(txtApiKey.Text);
+            if (match.Success)
+            {
+                Notification("Loading Information..", 1500);
+                File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token"), Base64Encode(match.Value));
+                switch (Get(string.Format(licenseapi + "{0}", match.Value)))
+                {
+                    case "Unauthorized":
+                        Notification("API Error: Unauthorized (API Key Invalid)", 4000);
+                        return;
+                    case "Forbidden":
+                        Notification("API Error: Forbidden", 4000);
+                        return;
+                    case "NotFound":
+                        Notification("API Error: Not Found", 4000);
+                        return;
+                    case "InternalServerError":
+                        Notification("API Error: Internal Server Error", 4000);
+                        return;
+                }
+                var license = JsonConvert.DeserializeObject<LicenseAPI>(Get(string.Format(licenseapi + "{0}", match.Value)));
+                if (license.premium == false)
+                {
+                    Notification("Account is not premium!", 4000);
+                    return;
+                }
+                pnInfo.Visible = true;
+                plan = license.premium_name;
+                lbAccInfo.Text = string.Format("User: {0}\nPlan: {1}\nExpires in: {2}", license.username, license.premium_name, license.expires);
+            }
+            else
+            {
+                pnInfo.Visible = false;
+            }
+        }
+
+
+        private void btnGen_Click(object sender, EventArgs e)
+        {
+            Match match = rgx.Match(txtApiKey.Text);
+            
+            switch (Get(string.Format(genapi + "{0}", match.Value)))
+            {
+                case "Unauthorized":
+                    Notification("API Error: Unauthorized (API Key Invalid)", 4000);
+                    return;
+                case "Forbidden":
+                    Notification("API Error: Forbidden", 4000);
+                    return;
+                case "NotFound":
+                    Notification("API Error: Not Found", 4000);
+                    return;
+                case "InternalServerError":
+                    Notification("API Error: Internal Server Error", 4000);
+                    return;
+            }
+
+            var geninfo = JsonConvert.DeserializeObject<GenerateAPI>(Get(string.Format(genapi + "{0}", match.Value)));
+            if (plan == "premium")
+            {
+                lbGenInfo.Location = new Point(lbGenInfo.Location.X, lbGenInfo.Location.Y - 6);
+                lbGenInfo.Text = string.Format("User: {0}\nToken: {1}\nPassword: anything\nCape:{2}", geninfo.username, geninfo.token, geninfo.cape);
+                Notification(string.Format("Alt: {0} Generated!", geninfo.username), 3000);
+                picHead.Load(string.Format("https://crafatar.com/avatars/{0}?size=64?overlay=true", geninfo.skin));
+                if (chkAutoCopy.Checked)
+                {
+                    Clipboard.SetText(string.Format("{0}:{1}", geninfo.token, "anything"));
+                }
+                return;
+            }
+            lbGenInfo.Location = new Point(lbGenInfo.Location.X, 48);
+            Notification(string.Format("Alt: {0} Generated!", geninfo.username), 3000);
+            lbGenInfo.Text = string.Format("User:{0}\nToken:{1}\nPassword: anything", geninfo.username, geninfo.token);
+            picHead.Load(string.Format("https://crafatar.com/avatars/{0}?size=64?overlay=true", geninfo.skin));
+            if (chkAutoCopy.Checked)
+            {
+                Clipboard.SetText(string.Format("{0}:{1}", geninfo.token, "anything"));
+            }
+        }
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            Environment.Exit(0);
+        }
+        // Utils (Too lazy to create an class)
+        #region "Shadow"
         public const int WM_NCLBUTTONDOWN = 0xA1;
         public const int HT_CAPTION = 0x2;
         private const int WM_NCLBUTTONDBLCLK = 0x00A3;
@@ -86,10 +192,15 @@ namespace TAccountGen
         [DllImport("user32.dll")]
         public static extern bool ReleaseCapture();
         #endregion
+        #region "Strings n Shit"
         public static string versionapi = "http://api.thealtening.com/app/version";
         public static string licenseapi = "http://api.thealtening.com/v1/license?token=";
+        public static string genapi = "http://api.thealtening.com/v1/generate?token=";
+        public static string plan;
         static Regex rgx = new Regex(@"^(api)-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})$");
-        public static string penis;
+        public static string extstatuscode;
+        #endregion
+        #region "Utils"
         public static string Get(string uri)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
@@ -111,29 +222,21 @@ namespace TAccountGen
                 switch (errorResponse.StatusCode)
                 {
                     case HttpStatusCode.Unauthorized:
-                        penis = "Unauthorized";
-                        return "Unauthorized";
+                        extstatuscode = "Unauthorized";
+                        break;
                     case HttpStatusCode.Forbidden:
-                        penis = "Forbidden";
-                        return "Forbidden";
+                        extstatuscode = "Forbidden";
+                        break;
                     case HttpStatusCode.NotFound:
-                        penis = "Not Found";
-                        return "Not Found";
+                        extstatuscode = "Not Found";
+                        break;
                     case HttpStatusCode.InternalServerError:
-                        penis = "Internal Server Error";
-                        return "Internal Server Error";
+                        extstatuscode = "Internal Server Error";
+                        break;
                 }
-                return penis;
+                return extstatuscode;
 
             }
-        }
-        public MainWindow()
-        {
-            InitializeComponent();
-            var materialSkinManager = MaterialSkinManager.Instance;
-            materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
-            materialSkinManager.ColorScheme = new ColorScheme(Primary.Green600, Primary.Green600, Primary.Green600, Accent.Green700, TextShade.WHITE);
-            notif.Location = new Point(notif.Location.X - 238, notif.Location.Y);
         }
         private async Task Wait(int ms)
         {
@@ -146,54 +249,18 @@ namespace TAccountGen
             await Wait(delay);
             Transition.run(notif, "Left", -238, new TransitionType_Acceleration(350));
         }
-
-        private void MainWindow_Load(object sender, EventArgs e)
+        public static string Base64Encode(string plainText)
         {
-            var version = JsonConvert.DeserializeObject<VersionAPI>(Get(versionapi));
-            lbVersion.Text = string.Format("{0}" + version.protocol_text, "v");
-            if (File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")))
-            {
-                Match match = rgx.Match(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")));
-                if (match.Success) { txtApiKey.Text = File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")); }
-            }
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return Convert.ToBase64String(plainTextBytes);
         }
-        private void txtApiKey_TextChanged(object sender, EventArgs e)
+        public static string Base64Decode(string base64EncodedData)
         {
-            Match match = rgx.Match(txtApiKey.Text);
-            if (match.Success)
-            {
-                Notification("Loading Information..", 1500);
-                File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token"), match.Value);
-                switch (Get(string.Format(licenseapi + "{0}", match.Value)))
-                {
-                    case "Unauthorized":
-                        Notification("API Error: Unauthorized", 4000);
-                        return;
-                    case "Forbidden":
-                        Notification("API Error: Forbidden", 4000);
-                        return;
-                    case "NotFound":
-                        Notification("API Error: Not Found", 4000);
-                        return;
-                    case "InternalServerError":
-                        Notification("API Error: Internal Server Error", 4000);
-                        return;
-                }
-                var license = JsonConvert.DeserializeObject<LicenseAPI>(Get(string.Format(licenseapi + "{0}", match.Value)));
-                if (license.premium == false)
-                {
-                    Notification("Account is expired!", 4000);
-                    return;
-                }
-                pnInfo.Visible = true;
-                lbAccInfo.Text = string.Format("User: {0}\nPlan: {1}\nExpires in: {2}", license.username, license.premium_name, license.expires);
-            }
-            else
-            {
-                pnInfo.Visible = false;
-            }
+            var base64EncodedBytes = Convert.FromBase64String(base64EncodedData);
+            return Encoding.UTF8.GetString(base64EncodedBytes);
         }
-
+        #endregion
+        #region "JsonClasses"
         public class VersionAPI
         {
             public int protocol { get; set; }
@@ -210,16 +277,16 @@ namespace TAccountGen
             public string premium_name { get; set; }
             public string expires { get; set; }
         }
-        public enum TheAlteningAPIStatus
+        public class GenerateAPI
         {
-            Unauthorized = 401,
-            Forbidden = 403,
-            NotFound = 404,
-            InternalServerError = 500
+            public string token { get; set; }
+            public string username { get; set; }
+            public string expires { get; set; }
+            public bool limit { get; set; }
+            public string skin { get; set; }
+            public string cape { get; set; }
+            public string password { get; set; }
         }
-        private void btnClose_Click(object sender, EventArgs e)
-        {
-            Environment.Exit(0);
-        }
+        #endregion
     }
 }
