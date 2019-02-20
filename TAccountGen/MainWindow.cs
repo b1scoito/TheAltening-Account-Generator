@@ -9,7 +9,6 @@ using Transitions;
 using System.Net;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Text;
 using System.Diagnostics;
 using System.Threading;
 
@@ -83,7 +82,7 @@ namespace TAccountGen
             }
         }
         [STAThread]
-        public void test()
+        public void genaltthread()
         {
             Match match = rgx.Match(txtApiKey.Text);
 
@@ -140,7 +139,7 @@ namespace TAccountGen
         }
         private void btnGen_Click(object sender, EventArgs e)
         {
-            new Thread(new ThreadStart(test)) { IsBackground = true }.Start();
+            new Thread(new ThreadStart(genaltthread)) { IsBackground = true }.Start();
            
         }
         private void btnClose_Click(object sender, EventArgs e)
