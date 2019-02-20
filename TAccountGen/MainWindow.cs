@@ -88,10 +88,11 @@ namespace TAccountGen
         #endregion
         public static string versionapi = "http://api.thealtening.com/app/version";
         public static string licenseapi = "http://api.thealtening.com/v1/license?token=";
+        static Regex rgx = new Regex(@"^(api)-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})$");
         public string Get(string uri)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            //request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
 
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             using (Stream stream = response.GetResponseStream())
@@ -124,10 +125,14 @@ namespace TAccountGen
         {
             var version = JsonConvert.DeserializeObject<VersionAPI>(Get(versionapi));
             lbVersion.Text = string.Format("{0}" + version.protocol_text, "v");
+            if (File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")))
+            {
+                Match match = rgx.Match(File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")));
+                if (match.Success) { txtApiKey.Text = File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "generator-auth-token")); }
+            }
         }
         private void txtApiKey_TextChanged(object sender, EventArgs e)
         {
-            Regex rgx = new Regex(@"^(api)-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})-([A-Z0-9a-z]{4})$");
             Match match = rgx.Match(txtApiKey.Text);
             if (match.Success)
             {
@@ -139,6 +144,10 @@ namespace TAccountGen
                     return;
                 } pnInfo.Visible = true;
                 lbAccInfo.Text = string.Format("User: {0}\nPlan: {1}\nExpires in: {2}", license.username, license.premium_name, license.expires);
+            }
+            else
+            {
+                pnInfo.Visible = false;
             }
         }
 

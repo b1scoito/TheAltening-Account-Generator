@@ -197,9 +197,9 @@
             this.lbTitleGenerate.Location = new System.Drawing.Point(159, 17);
             this.lbTitleGenerate.MouseState = MaterialSkin.MouseState.HOVER;
             this.lbTitleGenerate.Name = "lbTitleGenerate";
-            this.lbTitleGenerate.Size = new System.Drawing.Size(94, 18);
+            this.lbTitleGenerate.Size = new System.Drawing.Size(136, 19);
             this.lbTitleGenerate.TabIndex = 1;
-            this.lbTitleGenerate.Text = "Account Info";
+            this.lbTitleGenerate.Text = "Generate Accounts";
             // 
             // MainWindow
             // 
