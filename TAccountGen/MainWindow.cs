@@ -156,7 +156,6 @@ namespace TAccountGen
             MessageBox.Show(string.Format("Authentication Servers: {0}\nSession Server: {1}\nWebsite: {2}\nChecker: {3}", getstatus.status.authentication, getstatus.status.sessions, getstatus.status.website, getstatus.status.checker), "TheAltening Account Generator", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         #endregion
-        // Utils (Too lazy to create an class)
         #region "Shadow"
         public const int WM_NCLBUTTONDOWN = 0xA1;
         public const int HT_CAPTION = 0x2;
@@ -229,7 +228,7 @@ namespace TAccountGen
         [DllImport("user32.dll")]
         public static extern bool ReleaseCapture();
         #endregion
-        #region "Strings n Shit"
+        #region "Variables"
         public static string versionapi = "http://api.thealtening.com/app/version";
         public static string statusapi = "http://api.thealtening.com/status";
         public static string licenseapi = "http://api.thealtening.com/v1/license?token=";
@@ -243,6 +242,7 @@ namespace TAccountGen
         public static string Get(string uri)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.Proxy = null; // Speed up request.
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             try
             {
